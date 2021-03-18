@@ -11,9 +11,11 @@ import (
 )
 
 var yamlFilePath string
+var jsonFilePath string
 
 func init() {
 	flag.StringVar(&yamlFilePath, "yaml", "", "yaml file redirect mappings")
+	flag.StringVar(&jsonFilePath, "json", "", "json file redirect mappings")
 	flag.Parse()
 }
 
@@ -43,8 +45,23 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	json := make([]byte, 0)
+	if jsonFilePath != "" {
+		var err error
+		log.Println("Reading JSON file...")
+		json, err = os.ReadFile(jsonFilePath)
+		if err != nil {
+			log.Panic("Failed to read JSON file", err.Error())
+		}
+	}
+
+	jsonHandler, err := urlshort.JSONHandler([]byte(json), yamlHandler)
+	if err != nil {
+		panic(err)
+	}
 	fmt.Println("Starting the server on :8080")
-	http.ListenAndServe(":8080", yamlHandler)
+	http.ListenAndServe(":8080", jsonHandler)
 }
 
 func defaultMux() *http.ServeMux {

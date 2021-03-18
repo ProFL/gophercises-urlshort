@@ -1,6 +1,7 @@
 package urlshort
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 
@@ -26,8 +27,8 @@ func MapHandler(pathsToUrls map[string]string, fallback http.Handler) http.Handl
 }
 
 type RedirectSpec struct {
-	Path string `yaml:"path"`
-	Url  string `yaml:"url"`
+	Path string `yaml:"path" json:"path"`
+	Url  string `yaml:"url"  json:"url"`
 }
 
 func mapFromRedirectSpecs(specs []RedirectSpec) map[string]string {
@@ -57,6 +58,15 @@ func mapFromRedirectSpecs(specs []RedirectSpec) map[string]string {
 func YAMLHandler(yml []byte, fallback http.Handler) (http.HandlerFunc, error) {
 	redirectSpecs := make([]RedirectSpec, 0)
 	err := yaml.Unmarshal(yml, &redirectSpecs)
+	if err != nil {
+		return nil, err
+	}
+	return MapHandler(mapFromRedirectSpecs(redirectSpecs), fallback), nil
+}
+
+func JSONHandler(data []byte, fallback http.Handler) (http.HandlerFunc, error) {
+	redirectSpecs := make([]RedirectSpec, 0)
+	err := json.Unmarshal(data, &redirectSpecs)
 	if err != nil {
 		return nil, err
 	}
