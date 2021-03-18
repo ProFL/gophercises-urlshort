@@ -1,11 +1,21 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	"log"
 	"net/http"
+	"os"
 
 	"github.com/ProFL/gophercises-urlshort/urlshort"
 )
+
+var yamlFilePath string
+
+func init() {
+	flag.StringVar(&yamlFilePath, "yaml", "", "yaml file redirect mappings")
+	flag.Parse()
+}
 
 func main() {
 	mux := defaultMux()
@@ -19,12 +29,16 @@ func main() {
 
 	// Build the YAMLHandler using the mapHandler as the
 	// fallback
-	yaml := `
-- path: /urlshort
-  url: https://github.com/gophercises/urlshort
-- path: /urlshort-final
-  url: https://github.com/gophercises/urlshort/tree/solution
-`
+	yaml := make([]byte, 0)
+	if yamlFilePath != "" {
+		var err error
+		log.Println("Reading YAML file...")
+		yaml, err = os.ReadFile(yamlFilePath)
+		if err != nil {
+			log.Panic("Failed to read YAML file", err.Error())
+		}
+	}
+
 	yamlHandler, err := urlshort.YAMLHandler([]byte(yaml), mapHandler)
 	if err != nil {
 		panic(err)
