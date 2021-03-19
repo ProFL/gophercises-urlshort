@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"flag"
 	"fmt"
 	"log"
@@ -8,15 +9,27 @@ import (
 	"os"
 
 	"github.com/ProFL/gophercises-urlshort/handlers"
+	"github.com/ProFL/gophercises-urlshort/repositories"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 var yamlFilePath string
 var jsonFilePath string
+var dataSourceName string
 
 func init() {
 	flag.StringVar(&yamlFilePath, "yaml", "", "yaml file redirect mappings")
 	flag.StringVar(&jsonFilePath, "json", "", "json file redirect mappings")
+	flag.StringVar(&dataSourceName, "db", "./sample.db?cache=shared&mode=rw", "database connection string")
 	flag.Parse()
+}
+
+func connectToDatabase() *sql.DB {
+	db, err := sql.Open("sqlite3", dataSourceName)
+	if err != nil {
+		log.Panic("Failed to connect to the database", err.Error())
+	}
+	return db
 }
 
 func main() {
@@ -60,8 +73,21 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	db := connectToDatabase()
+	defer db.Close()
+
+	redirectRepo := repositories.RedirectRepository{Db: db}
+	redirectRepo.CreateTableIfNotExists()
+	redirectRepo.Seed()
+
+	databaseHandler := handlers.DatabaseHandler(&redirectRepo, jsonHandler)
+	if err != nil {
+		panic(err)
+	}
+
 	fmt.Println("Starting the server on :8080")
-	http.ListenAndServe(":8080", jsonHandler)
+	http.ListenAndServe(":8080", databaseHandler)
 }
 
 func defaultMux() *http.ServeMux {
