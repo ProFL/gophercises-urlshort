@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/ProFL/gophercises-urlshort/models"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -26,12 +27,7 @@ func MapHandler(pathsToUrls map[string]string, fallback http.Handler) http.Handl
 	}
 }
 
-type RedirectSpec struct {
-	Path string `yaml:"path" json:"path"`
-	Url  string `yaml:"url"  json:"url"`
-}
-
-func mapFromRedirectSpecs(specs []RedirectSpec) map[string]string {
+func mapFromRedirectSpecs(specs []models.Redirect) map[string]string {
 	redirectMap := make(map[string]string)
 	for _, spec := range specs {
 		redirectMap[spec.Path] = spec.Url
@@ -56,7 +52,7 @@ func mapFromRedirectSpecs(specs []RedirectSpec) map[string]string {
 // See MapHandler to create a similar http.HandlerFunc via
 // a mapping of paths to urls.
 func YAMLHandler(yml []byte, fallback http.Handler) (http.HandlerFunc, error) {
-	redirectSpecs := make([]RedirectSpec, 0)
+	redirectSpecs := make([]models.Redirect, 0)
 	err := yaml.Unmarshal(yml, &redirectSpecs)
 	if err != nil {
 		return nil, err
@@ -65,7 +61,7 @@ func YAMLHandler(yml []byte, fallback http.Handler) (http.HandlerFunc, error) {
 }
 
 func JSONHandler(data []byte, fallback http.Handler) (http.HandlerFunc, error) {
-	redirectSpecs := make([]RedirectSpec, 0)
+	redirectSpecs := make([]models.Redirect, 0)
 	err := json.Unmarshal(data, &redirectSpecs)
 	if err != nil {
 		return nil, err

@@ -46,7 +46,7 @@ func main() {
 		panic(err)
 	}
 
-	json := make([]byte, 0)
+	json := []byte("[]")
 	if jsonFilePath != "" {
 		var err error
 		log.Println("Reading JSON file...")
