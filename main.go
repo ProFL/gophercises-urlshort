@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/ProFL/gophercises-urlshort/urlshort"
+	"github.com/ProFL/gophercises-urlshort/handlers"
 )
 
 var yamlFilePath string
@@ -27,7 +27,7 @@ func main() {
 		"/urlshort-godoc": "https://godoc.org/github.com/gophercises/urlshort",
 		"/yaml-godoc":     "https://godoc.org/gopkg.in/yaml.v2",
 	}
-	mapHandler := urlshort.MapHandler(pathsToUrls, mux)
+	mapHandler := handlers.MapHandler(pathsToUrls, mux)
 
 	// Build the YAMLHandler using the mapHandler as the
 	// fallback
@@ -41,7 +41,7 @@ func main() {
 		}
 	}
 
-	yamlHandler, err := urlshort.YAMLHandler([]byte(yaml), mapHandler)
+	yamlHandler, err := handlers.YAMLHandler([]byte(yaml), mapHandler)
 	if err != nil {
 		panic(err)
 	}
@@ -56,7 +56,7 @@ func main() {
 		}
 	}
 
-	jsonHandler, err := urlshort.JSONHandler([]byte(json), yamlHandler)
+	jsonHandler, err := handlers.JSONHandler([]byte(json), yamlHandler)
 	if err != nil {
 		panic(err)
 	}
